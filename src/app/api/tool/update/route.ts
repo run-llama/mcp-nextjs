@@ -43,6 +43,8 @@ export async function POST(req: Request) {
       const configToSave = {
         ...(config?.tool_name ? { tool_name: config.tool_name } : {}),
         ...(config?.tool_description ? { tool_description: config.tool_description } : {}),
+        // Add preset retrieval parameters if provided
+        ...(config?.preset_retrieval_parameters ? { preset_retrieval_parameters: config.preset_retrieval_parameters } : {}),
       };
       await prisma.tools.upsert({
         where: { userId_indexId: { userId: user.id, indexId } },

@@ -124,16 +124,22 @@ const handler = async (req: Request) => {
             const retrieverApiUrl = `https://api.cloud.llamaindex.ai/api/v1/retrievers/retrieve?project_id=${user.project_id}&organization_id=${user.organization_id}`;
             console.log('[MCP] Calling retriever API:', retrieverApiUrl);
             
+            // Build pipeline object with preset retrieval parameters if available
+            const pipeline: any = {
+              name,
+              description,
+              pipeline_id: tool.indexId,
+            };
+            
+            // Add preset retrieval parameters if they exist in the config
+            if (config.preset_retrieval_parameters) {
+              pipeline.preset_retrieval_parameters = config.preset_retrieval_parameters;
+            }
+            
             const retrieverPayload = {
               mode: 'full',
               query,
-              pipelines: [
-                {
-                  name,
-                  description,
-                  pipeline_id: tool.indexId,
-                },
-              ],
+              pipelines: [pipeline],
             };
             console.log('[MCP] Retriever payload:', retrieverPayload);
             

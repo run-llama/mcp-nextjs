@@ -532,3 +532,77 @@ a {
 .footer a:hover {
   text-decoration: underline;
 }
+
+/* Advanced retrieval parameters styles */
+.advanced-toggle-btn {
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: var(--primary-color);
+  cursor: pointer;
+  padding: 4px 0;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.advanced-toggle-btn:hover {
+  color: var(--primary-hover);
+}
+
+.advanced-params {
+  margin-top: 8px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.param-input {
+  width: 80px;
+  height: 24px;
+  padding: 0 6px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.param-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.param-select {
+  width: 160px;
+  height: 24px;
+  padding: 0 6px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 13px;
+  background: white;
+}
+
+.param-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.preset-params-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  cursor: pointer;
+  min-height: 24px;
+  align-items: center;
+}
+
+.param-tag {
+  background: #f0f4f8;
+  border: 1px solid #cbd5e0;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 11px;
+  color: #4a5568;
+  white-space: nowrap;
+}

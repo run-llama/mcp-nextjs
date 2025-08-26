@@ -145,13 +145,14 @@ function IndexesList() {
   const [error, setError] = useState<string | null>(null);
   const [enabled, setEnabled] = useState<{ [id: string]: boolean }>({});
   const [toggleLoading, setToggleLoading] = useState<{ [id: string]: boolean }>({});
-  const [toolConfigs, setToolConfigs] = useState<{ [id: string]: { tool_name: string; tool_description: string } }>({});
+  const [toolConfigs, setToolConfigs] = useState<{ [id: string]: { tool_name: string; tool_description: string; preset_retrieval_parameters?: any } }>({});
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editValues, setEditValues] = useState<{ tool_name: string; tool_description: string }>({ tool_name: '', tool_description: '' });
+  const [editValues, setEditValues] = useState<{ tool_name: string; tool_description: string; preset_retrieval_parameters?: any }>({ tool_name: '', tool_description: '' });
   const [toolNameError, setToolNameError] = useState<string | null>(null);
   const nameInputRef = React.useRef<HTMLInputElement>(null);
   const descInputRef = React.useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<'indexes' | 'instructions'>('indexes');
+  const [showAdvanced, setShowAdvanced] = useState<{ [id: string]: boolean }>({});
 
   useEffect(() => {
     async function fetchIndexes() {
@@ -164,24 +165,27 @@ function IndexesList() {
         const list = Array.isArray(data.indexes) ? data.indexes : data.indexes?.data || [];
         setIndexes(list);
         const initial: { [id: string]: boolean } = {};
-        const configs: { [id: string]: { tool_name: string; tool_description: string } } = {};
+        const configs: { [id: string]: { tool_name: string; tool_description: string; preset_retrieval_parameters?: any } } = {};
         list.forEach((idx: any) => {
           const id = idx.id || idx.name;
           let tool_name = '';
           let tool_description = '';
+          let preset_retrieval_parameters = {};
           let enabled = false;
           if (idx.tool_config) {
             tool_name = idx.tool_config.tool_name || '';
             tool_description = idx.tool_config.tool_description || '';
+            preset_retrieval_parameters = idx.tool_config.preset_retrieval_parameters || {};
             enabled = true;
           } else {
             const name = idx.name || id;
             tool_name = name.toLowerCase().replace(/[^a-z0-9]+/g, '_');
             tool_description = `Search ${name}`;
+            preset_retrieval_parameters = {};
             enabled = false;
           }
           initial[id] = enabled;
-          configs[id] = { tool_name, tool_description };
+          configs[id] = { tool_name, tool_description, preset_retrieval_parameters };
         });
         setEnabled(initial);
         setToolConfigs(configs);
@@ -204,6 +208,7 @@ function IndexesList() {
         body.config = {
           tool_name: toolConfigs[id].tool_name,
           tool_description: toolConfigs[id].tool_description,
+          preset_retrieval_parameters: toolConfigs[id].preset_retrieval_parameters || {},
         };
       }
       const res = await fetch("/api/tool/update", {
@@ -225,6 +230,7 @@ function IndexesList() {
     setEditValues({
       tool_name: toolConfigs[id]?.tool_name || '',
       tool_description: toolConfigs[id]?.tool_description || '',
+      preset_retrieval_parameters: toolConfigs[id]?.preset_retrieval_parameters || {},
     });
   };
 
@@ -241,6 +247,16 @@ function IndexesList() {
     } else {
       setEditValues(v => ({ ...v, [name]: value }));
     }
+  };
+
+  const handlePresetParamChange = (paramName: string, value: any) => {
+    setEditValues(v => ({
+      ...v,
+      preset_retrieval_parameters: {
+        ...v.preset_retrieval_parameters,
+        [paramName]: value
+      }
+    }));
   };
 
   const handleEditBlur = (id: string) => {
@@ -264,6 +280,7 @@ function IndexesList() {
             config: {
               tool_name: editValues.tool_name,
               tool_description: editValues.tool_description,
+              preset_retrieval_parameters: editValues.preset_retrieval_parameters || {},
             },
           }),
         }).catch(() => alert("Failed to update tool config"));
@@ -287,6 +304,7 @@ function IndexesList() {
           config: {
             tool_name: editValues.tool_name,
             tool_description: editValues.tool_description,
+            preset_retrieval_parameters: editValues.preset_retrieval_parameters || {},
           },
         }),
       }).catch(() => alert("Failed to update tool config"));
@@ -375,6 +393,81 @@ function IndexesList() {
                                   className="tool-desc-textarea"
                                 />
                               </div>
+                              <div className="tool-field-row">
+                                <button
+                                  type="button"
+                                  onClick={() => setShowAdvanced(s => ({ ...s, [id]: !s[id] }))}
+                                  className="advanced-toggle-btn"
+                                >
+                                  {showAdvanced[id] ? '▼' : '▶'} Advanced Settings
+                                </button>
+                              </div>
+                              {showAdvanced[id] && (
+                                <div className="advanced-params">
+                                  <div className="tool-field-row">
+                                    <label className="tool-field-label">Top K</label>
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      max="100"
+                                      value={editValues.preset_retrieval_parameters?.dense_similarity_top_k || 30}
+                                      onChange={e => handlePresetParamChange('dense_similarity_top_k', parseInt(e.target.value))}
+                                      className="param-input"
+                                      onBlur={() => handleEditBlur(id)}
+                                    />
+                                  </div>
+                                  <div className="tool-field-row">
+                                    <label className="tool-field-label">Similarity Cutoff</label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="1"
+                                      step="0.1"
+                                      value={editValues.preset_retrieval_parameters?.dense_similarity_cutoff || 0.0}
+                                      onChange={e => handlePresetParamChange('dense_similarity_cutoff', parseFloat(e.target.value))}
+                                      className="param-input"
+                                      onBlur={() => handleEditBlur(id)}
+                                    />
+                                  </div>
+                                  <div className="tool-field-row">
+                                    <label className="tool-field-label">Enable Reranking</label>
+                                    <input
+                                      type="checkbox"
+                                      checked={editValues.preset_retrieval_parameters?.enable_reranking || false}
+                                      onChange={e => handlePresetParamChange('enable_reranking', e.target.checked)}
+                                      onBlur={() => handleEditBlur(id)}
+                                    />
+                                  </div>
+                                  {editValues.preset_retrieval_parameters?.enable_reranking && (
+                                    <div className="tool-field-row">
+                                      <label className="tool-field-label">Rerank Top N</label>
+                                      <input
+                                        type="number"
+                                        min="1"
+                                        max="100"
+                                        value={editValues.preset_retrieval_parameters?.rerank_top_n || 6}
+                                        onChange={e => handlePresetParamChange('rerank_top_n', parseInt(e.target.value))}
+                                        className="param-input"
+                                        onBlur={() => handleEditBlur(id)}
+                                      />
+                                    </div>
+                                  )}
+                                  <div className="tool-field-row">
+                                    <label className="tool-field-label">Retrieval Mode</label>
+                                    <select
+                                      value={editValues.preset_retrieval_parameters?.retrieval_mode || 'chunks'}
+                                      onChange={e => handlePresetParamChange('retrieval_mode', e.target.value)}
+                                      className="param-select"
+                                      onBlur={() => handleEditBlur(id)}
+                                    >
+                                      <option value="chunks">Chunks</option>
+                                      <option value="files_via_metadata">Files via Metadata</option>
+                                      <option value="files_via_content">Files via Content</option>
+                                      <option value="auto_routed">Auto Routed</option>
+                                    </select>
+                                  </div>
+                                </div>
+                              )}
                             </>
                           ) : (
                             <>
@@ -402,6 +495,21 @@ function IndexesList() {
                                   {config.tool_description}
                                 </div>
                               </div>
+                              {config.preset_retrieval_parameters && Object.keys(config.preset_retrieval_parameters).length > 0 && (
+                                <div className="tool-field-row">
+                                  <label className="tool-field-label">Advanced</label>
+                                  <div className="preset-params-summary" onClick={() => startEditing(id)}>
+                                                                         {Object.entries(config.preset_retrieval_parameters)
+                                       .filter(([, value]) => value !== undefined && value !== null && value !== '')
+                                       .map(([key, value]) => (
+                                         <span key={key} className="param-tag">
+                                           {key}: {typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)}
+                                         </span>
+                                       ))
+                                     }
+                                  </div>
+                                </div>
+                              )}
                             </>
                           )}
                         </div>
