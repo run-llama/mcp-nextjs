@@ -1,3 +1,7 @@
+> [!CAUTION]
+> This project is archived and no longer supported. See [the docs](https://developers.llamaindex.ai/for-agents/) for the latest on connecting your agent to LlamaParse Platform APIs.
+> Our production hosted MCP endpoint lives [here](https://github.com/run-llama/mcp-llamaindex-ai).
+
 # OAuth 2.1 MCP Server as a Next.js app on Vercel
 
 This is a Next.js-based application that provides an MCP (Model Context Protocol) server with OAuth 2.1 authentication support. It is intended as a model for building your own MCP server in a Next.js context. It uses the [@vercel/mcp-adapter](https://github.com/vercel/mcp-adapter) to handle the MCP protocol, in order to support both SSE and Streamable HTTP transports.
